@@ -5,7 +5,6 @@ function App() {
     const currentDay = date.getDate();
     const currentMonth = date.getMonth() + 1;
     const currentYear = date.getFullYear();
-    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
     const dayOfWeek = date.toLocaleString("fr-FR", { weekday: "long" });
     const currentMonthLong = date.toLocaleString("fr-FR", { month: "long" });
 
@@ -102,38 +101,29 @@ function App() {
         },
     ]);
 
+    // function adjustDay(day) {
+    //     const currentDayIndex = date.getDay();
+    //     return day === "dimanche" && currentDayIndex === 0 ? 7 : date.getDay();
+    // }
+
     useEffect(() => {
         setDays((prevState) => {
-            const today = date.getDay();
-            const startingDay = currentDay - today + 1;
-
-            const updatedDays = prevState.map((obj) => {
-                let dayNumber = startingDay + obj.id - 1;
-
-                if (dayNumber <= 0) {
-                    dayNumber += daysInMonth;
-                } else if (dayNumber > daysInMonth) {
-                    dayNumber -= daysInMonth;
-                }
-
-                return { ...obj, numberDay: dayNumber };
-            });
-
             // Trouver l'index du jour actuel
-            const currentDayIndex = updatedDays.findIndex(
+            const currentDayIndex = prevState.findIndex(
                 (day) => day.nameDay === dayOfWeek
             );
 
             // Décaler les jours pour mettre le jour actuel en première position
             const shiftedDays = [
-                ...updatedDays.slice(currentDayIndex),
-                ...updatedDays.slice(0, currentDayIndex),
+                ...prevState.slice(currentDayIndex),
+                ...prevState.slice(0, currentDayIndex),
             ];
 
-            // Tri des jours par leur id pour réorganiser dans l'ordre naturel
-            shiftedDays.sort((a, b) => a.id - b.id);
+            const week = shiftedDays.map((day, index) => {
+                return { ...day, numberDay: currentDay + index };
+            });
 
-            return shiftedDays;
+            return week;
         });
     }, []);
 
