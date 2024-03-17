@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 function App() {
     const date = new Date();
@@ -9,7 +9,40 @@ function App() {
     const dayOfWeek = date.toLocaleString("fr-FR", { weekday: "long" });
     const currentMonthLong = date.toLocaleString("fr-FR", { month: "long" });
 
-    const [numberRooms, setNumberRooms] = useState(3);
+    const [numberRooms, setNumberRooms] = useState(5);
+    const [rooms, setRooms] = useState([
+        {
+            id: 1,
+            name: "Agents H98 Absinthe",
+            iconUrl: "/img/absinthe.svg",
+            availableTime: ["14:00", "16:00", "18:00"],
+        },
+        {
+            id: 2,
+            name: "Le Dragon de l'île mystérieuse",
+            iconUrl: "/img/dragon.svg",
+            availableTime: ["14:00", "16:00", "18:00"],
+        },
+        {
+            id: 3,
+            name: "Sherlock Holmes",
+            iconUrl: "/img/magnifying-glass.svg",
+            availableTime: ["13:45", "16:00", "18:15", "20:30"],
+        },
+        {
+            id: 4,
+            name: "Les Pirates",
+            iconUrl: "/img/pirate.svg",
+            availableTime: ["13:45", "16:00", "18:15", "20:30"],
+        },
+        {
+            id: 5,
+            name: "Magie & Sorcellerie",
+            iconUrl: "/img/magic.svg",
+            availableTime: ["14:00", "16:00", "18:00"],
+        },
+    ]);
+    const [isBtnDisabled, setIsBtnDisabled] = useState(true);
     const [days, setDays] = useState([
         {
             id: 1,
@@ -106,6 +139,17 @@ function App() {
 
     const previousWeek = () => {
         setDays((prevState) => {
+            const startOfWeek = new Date(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1)
+            );
+            const mondayOfSecondWeek = new Date(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate() - date.getDay() + (date.getDay() === 0 ? 1 : 8)
+            );
+
             return prevState.map((obj) => {
                 let newNumberDay = obj.numberDay - 7;
                 let newMonth = obj.nameMonth;
@@ -116,7 +160,6 @@ function App() {
                 if (newNumberDay < 1) {
                     newNumberMonth -= 1;
                     if (newNumberMonth < 1) {
-                        console.log("newNumberMonth", newNumberMonth);
                         // Si le nouveau mois est janvier, passer à l'année précédente
                         newNumberMonth = 12;
                         newYear -= 1;
@@ -138,6 +181,21 @@ function App() {
                     ).toLocaleString("fr-FR", { month: "long" });
                 }
 
+                // Créez une nouvelle date avec les valeurs mises à jour
+                const newDate = new Date(
+                    newYear,
+                    newNumberMonth - 1,
+                    newNumberDay
+                );
+
+                // Si la nouvelle date est antérieure au début de la semaine actuelle, retournez l'objet actuel
+                if (newDate < startOfWeek) {
+                    setIsBtnDisabled(true);
+                    return obj;
+                }
+
+                if (newDate < mondayOfSecondWeek) setIsBtnDisabled(true);
+
                 return {
                     ...obj,
                     numberDay: newNumberDay,
@@ -150,6 +208,7 @@ function App() {
     };
 
     const nextWeek = () => {
+        setIsBtnDisabled(false);
         setDays((prevState) => {
             return prevState.map((obj) => {
                 let newNumberDay = obj.numberDay + 7;
@@ -192,10 +251,9 @@ function App() {
         });
     };
 
-    // console.log(date);
     return (
         <div className="bg-slate-300 h-screen">
-            <div className="w-[80%] m-auto">
+            <div className="w-[90%] m-auto">
                 <h1 className="text-4xl font-bold text-center py-3">
                     Calendar
                 </h1>
@@ -203,7 +261,8 @@ function App() {
                 <div>
                     <button
                         onClick={previousWeek}
-                        className="bg-blue-600 px-4 py-1 rounded mr-2 hover:bg-blue-700"
+                        className="bg-blue-600 px-4 py-1 rounded mr-2 hover:bg-blue-700 disabled:bg-gray-600"
+                        disabled={isBtnDisabled}
                     >
                         <img
                             src="/img/chevron-left.svg"
@@ -236,7 +295,7 @@ function App() {
                             {days.map((day) => (
                                 <th
                                     key={day.id}
-                                    className="border p-2"
+                                    className="border min-w-12 h-10"
                                     colSpan={numberRooms}
                                 >
                                     <span>
@@ -247,13 +306,64 @@ function App() {
                                 </th>
                             ))}
                         </tr>
+                        <tr>
+                            {days.map((day) => {
+                                return (
+                                    <React.Fragment key={day.id}>
+                                        {rooms.map((room) => (
+                                            <th
+                                                key={`${day.id}-${room.id}`}
+                                                className="border min-w-12 h-10"
+                                            >
+                                                <img
+                                                    src={room.iconUrl}
+                                                    alt={`Salle ${room.name}`}
+                                                    className="w-6 h-6 min-w-2 min-h-2 m-auto"
+                                                />
+                                            </th>
+                                        ))}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            {/* {days.map((day, index) => (
-                            <td key={index}>{day}</td>
-                        ))} */}
-                        </tr>
+                        {rooms[2].availableTime.map((_, timeIndex) => (
+                            <tr key={timeIndex}>
+                                {days.map((day) => {
+                                    return (
+                                        <React.Fragment
+                                            key={`${timeIndex}-${day.id}`}
+                                        >
+                                            {rooms.map((room) => (
+                                                <td
+                                                    key={`${timeIndex}-${day.id}-${room.id}`}
+                                                    className="border min-w-12 h-10"
+                                                >
+                                                    {day.id <= 2 && (
+                                                        <p className="flex justify-center">
+                                                            -
+                                                        </p>
+                                                    )}
+                                                    {day.id > 2 && (
+                                                        <p className="flex justify-center">
+                                                            {room.availableTime[
+                                                                timeIndex
+                                                            ]
+                                                                ? room
+                                                                      .availableTime[
+                                                                      timeIndex
+                                                                  ]
+                                                                : "-"}
+                                                        </p>
+                                                    )}
+                                                </td>
+                                            ))}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>
