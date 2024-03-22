@@ -6,12 +6,15 @@ export default function Calendar({
     days,
     setDays,
     currentDay,
+    currentMonthLong,
     currentYear,
     dayOfWeek,
     widthLi,
+    dateMax,
+    currentDate,
+    isBtnDisabled,
+    setIsBtnDisabled,
 }) {
-    const [isBtnDisabled, setIsBtnDisabled] = useState(true);
-
     // Trouver l'index de l'objet avec le plus grand tableau "availableTime"
     const maxIndex = rooms.reduce((maxIndex, currentRoom, currentIndex) => {
         if (
@@ -25,6 +28,7 @@ export default function Calendar({
     }, 0);
 
     useEffect(() => {
+        console.log("USE EFFECT");
         setDays((prevState) => {
             // Trouver l'index du jour actuel
             const currentDayIndex = prevState.findIndex(
@@ -38,26 +42,21 @@ export default function Calendar({
             ];
 
             const week = shiftedDays.map((day, index) => {
-                return { ...day, numberDay: currentDay + index };
+                return {
+                    ...day,
+                    numberDay: currentDay + index,
+                    nameMonth: currentMonthLong,
+                    year: currentYear,
+                };
             });
 
             return week;
         });
-    }, []);
+    }, [date]);
 
     const previousWeek = () => {
+        setIsBtnDisabled({ previous: false, next: false });
         setDays((prevState) => {
-            const startOfWeek = new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1)
-            );
-            const mondayOfSecondWeek = new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate() - date.getDay() + (date.getDay() === 0 ? 1 : 8)
-            );
-
             return prevState.map((obj) => {
                 let newNumberDay = obj.numberDay - 7;
                 let newMonth = obj.nameMonth;
@@ -89,21 +88,6 @@ export default function Calendar({
                     ).toLocaleString("fr-FR", { month: "long" });
                 }
 
-                // Créez une nouvelle date avec les valeurs mises à jour
-                const newDate = new Date(
-                    newYear,
-                    newNumberMonth - 1,
-                    newNumberDay
-                );
-
-                // Si la nouvelle date est antérieure au début de la semaine actuelle, retournez l'objet actuel
-                if (newDate < startOfWeek) {
-                    setIsBtnDisabled(true);
-                    return obj;
-                }
-
-                if (newDate < mondayOfSecondWeek) setIsBtnDisabled(true);
-
                 return {
                     ...obj,
                     numberDay: newNumberDay,
@@ -113,10 +97,27 @@ export default function Calendar({
                 };
             });
         });
+
+        console.log(days);
+        const previousWeekDate = new Date(
+            days[0].year,
+            days[0].numberMonth - 1,
+            days[0].numberDay - 7
+        );
+
+        console.log(previousWeekDate);
+        console.log(currentDate);
+        if (previousWeekDate.getTime() < currentDate.getTime()) {
+            setIsBtnDisabled({ previous: true, next: false });
+        }
+
+        if (isBtnDisabled.previous === true && days[0].nameDay !== dayOfWeek) {
+            console.log("WOW");
+        }
     };
 
     const nextWeek = () => {
-        setIsBtnDisabled(false);
+        setIsBtnDisabled({ previous: false, next: false });
         setDays((prevState) => {
             return prevState.map((obj) => {
                 let newNumberDay = obj.numberDay + 7;
@@ -157,6 +158,15 @@ export default function Calendar({
                 };
             });
         });
+
+        const nextWeekDate = new Date(
+            days[6].year,
+            days[6].numberMonth - 1,
+            days[6].numberDay + 7
+        );
+
+        if (nextWeekDate.getTime() > dateMax.getTime())
+            setIsBtnDisabled({ previous: false, next: true });
     };
 
     return (
@@ -166,7 +176,7 @@ export default function Calendar({
                     <button
                         onClick={previousWeek}
                         className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700 disabled:bg-gray-600"
-                        disabled={isBtnDisabled}
+                        disabled={isBtnDisabled.previous}
                     >
                         <img
                             src="/img/chevron-left.svg"
@@ -181,7 +191,8 @@ export default function Calendar({
                     </h2>
                     <button
                         onClick={nextWeek}
-                        className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700"
+                        className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700 disabled:bg-gray-600"
+                        disabled={isBtnDisabled.next}
                     >
                         <img
                             src="/img/chevron-right.svg"

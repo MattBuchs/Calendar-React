@@ -2,12 +2,29 @@ import { useState } from "react";
 import Calendar from "./components/Calendar/Calendar";
 
 function App() {
-    const date = new Date();
+    const [date, setDate] = useState(new Date());
+    const currentDate = new Date();
     const currentDay = date.getDate();
     const currentMonth = date.getMonth() + 1;
     const currentYear = date.getFullYear();
     const dayOfWeek = date.toLocaleString("fr-FR", { weekday: "long" });
     const currentMonthLong = date.toLocaleString("fr-FR", { month: "long" });
+    const dateMax = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 6,
+        currentDate.getDate()
+    );
+    const maxDay = dateMax.getDate();
+    const maxMonth = dateMax.getMonth() + 1;
+    const maxYear = dateMax.getFullYear();
+    const minDay = currentDate.getDate();
+    const minMonth = currentDate.getMonth() + 1;
+    const minYear = currentDate.getFullYear();
+
+    const [isBtnDisabled, setIsBtnDisabled] = useState({
+        previous: true,
+        next: false,
+    });
 
     const [rooms, setRooms] = useState([
         {
@@ -116,8 +133,49 @@ function App() {
         setDisplayRooms(rooms.filter((room) => room.id === Number(value)));
     };
 
+    const handleDate = (e) => {
+        const value = e.target.value;
+
+        if (value === "") {
+            const previousWeekDate = new Date(
+                days[0].year,
+                days[0].numberMonth - 1,
+                days[0].numberDay - 7
+            );
+
+            const nextWeekDate = new Date(
+                days[6].year,
+                days[6].numberMonth - 1,
+                days[6].numberDay + 7
+            );
+
+            if (previousWeekDate.getTime() < currentDate.getTime())
+                setIsBtnDisabled({ previous: true, next: false });
+            else if (nextWeekDate.getTime() > dateMax.getTime())
+                setIsBtnDisabled({ previous: false, next: true });
+            else setIsBtnDisabled({ previous: false, next: false });
+
+            return setDate(new Date());
+        }
+
+        const day = value.slice(8, 10);
+        const month = Number(value.slice(5, 7)) - 1;
+        const year = value.slice(0, 4);
+
+        setDate(new Date(year, month, day));
+
+        const previousWeekDate = new Date(year, month, day - 7);
+        const nextWeekDate = new Date(year, month, day + 7);
+
+        if (previousWeekDate.getTime() < currentDate.getTime())
+            setIsBtnDisabled({ previous: true, next: false });
+        else if (nextWeekDate.getTime() > dateMax.getTime())
+            setIsBtnDisabled({ previous: false, next: true });
+        else setIsBtnDisabled({ previous: false, next: false });
+    };
+
     return (
-        <div className="bg-slate-300 h-screen">
+        <div className="bg-slate-300 min-h-screen">
             <h1 className="text-4xl font-bold text-center py-3">Calendar</h1>
 
             <div className="text-center">
@@ -135,15 +193,34 @@ function App() {
                 </select>
             </div>
 
+            <div className="text-center mt-3">
+                <input
+                    type="date"
+                    name="date-search"
+                    min={`${minYear}-${
+                        minMonth < 10 ? "0" + minMonth : minMonth
+                    }-${minDay}`}
+                    max={`${maxYear}-${
+                        maxMonth < 10 ? "0" + maxMonth : maxMonth
+                    }-${maxDay}`}
+                    onChange={handleDate}
+                />
+            </div>
+
             <Calendar
                 date={date}
                 rooms={displayRooms}
                 days={days}
                 setDays={setDays}
                 currentDay={currentDay}
+                currentMonthLong={currentMonthLong}
                 currentYear={currentYear}
                 dayOfWeek={dayOfWeek}
                 widthLi={widthLi}
+                dateMax={dateMax}
+                currentDate={currentDate}
+                isBtnDisabled={isBtnDisabled}
+                setIsBtnDisabled={setIsBtnDisabled}
             />
         </div>
     );
