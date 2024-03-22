@@ -6,6 +6,7 @@ export default function Calendar({
     days,
     setDays,
     currentDay,
+    currentMonth,
     currentMonthLong,
     currentYear,
     dayOfWeek,
@@ -28,7 +29,6 @@ export default function Calendar({
     }, 0);
 
     useEffect(() => {
-        console.log("USE EFFECT");
         setDays((prevState) => {
             // Trouver l'index du jour actuel
             const currentDayIndex = prevState.findIndex(
@@ -46,6 +46,7 @@ export default function Calendar({
                     ...day,
                     numberDay: currentDay + index,
                     nameMonth: currentMonthLong,
+                    numberMonth: currentMonth,
                     year: currentYear,
                 };
             });
@@ -98,21 +99,14 @@ export default function Calendar({
             });
         });
 
-        console.log(days);
         const previousWeekDate = new Date(
             days[0].year,
             days[0].numberMonth - 1,
             days[0].numberDay - 7
         );
 
-        console.log(previousWeekDate);
-        console.log(currentDate);
         if (previousWeekDate.getTime() < currentDate.getTime()) {
             setIsBtnDisabled({ previous: true, next: false });
-        }
-
-        if (isBtnDisabled.previous === true && days[0].nameDay !== dayOfWeek) {
-            console.log("WOW");
         }
     };
 

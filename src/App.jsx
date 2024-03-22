@@ -135,6 +135,16 @@ function App() {
 
     const handleDate = (e) => {
         const value = e.target.value;
+        const day = value.slice(8, 10);
+        const month = Number(value.slice(5, 7)) - 1;
+        const year = value.slice(0, 4);
+        const newDate = new Date(year, month, day);
+
+        if (
+            newDate.getTime() < currentDate.getTime() ||
+            newDate.getTime() > dateMax.getTime()
+        )
+            return;
 
         if (value === "") {
             const previousWeekDate = new Date(
@@ -158,14 +168,10 @@ function App() {
             return setDate(new Date());
         }
 
-        const day = value.slice(8, 10);
-        const month = Number(value.slice(5, 7)) - 1;
-        const year = value.slice(0, 4);
+        setDate(newDate);
 
-        setDate(new Date(year, month, day));
-
-        const previousWeekDate = new Date(year, month, day - 7);
-        const nextWeekDate = new Date(year, month, day + 7);
+        const previousWeekDate = new Date(year, month, Number(day) - 7);
+        const nextWeekDate = new Date(year, month, Number(day) + 7);
 
         if (previousWeekDate.getTime() < currentDate.getTime())
             setIsBtnDisabled({ previous: true, next: false });
@@ -213,6 +219,7 @@ function App() {
                 days={days}
                 setDays={setDays}
                 currentDay={currentDay}
+                currentMonth={currentMonth}
                 currentMonthLong={currentMonthLong}
                 currentYear={currentYear}
                 dayOfWeek={dayOfWeek}
