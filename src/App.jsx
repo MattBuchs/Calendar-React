@@ -12,7 +12,10 @@ function App() {
     const dateMax = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth() + 6,
-        currentDate.getDate()
+        currentDate.getDate(),
+        23,
+        59,
+        59
     );
     const maxDay = dateMax.getDate();
     const maxMonth = dateMax.getMonth() + 1;
@@ -138,23 +141,10 @@ function App() {
         const value = e.target.value;
 
         if (value === "") {
-            const previousWeekDate = new Date(
-                days[0].year,
-                days[0].numberMonth - 1,
-                days[0].numberDay - 7
-            );
-
-            const nextWeekDate = new Date(
-                days[6].year,
-                days[6].numberMonth - 1,
-                days[6].numberDay + 7
-            );
-
-            if (previousWeekDate.getTime() < currentDate.getTime())
-                setIsBtnDisabled({ previous: true, next: false });
-            else if (nextWeekDate.getTime() > dateMax.getTime())
-                setIsBtnDisabled({ previous: false, next: true });
-            else setIsBtnDisabled({ previous: false, next: false });
+            setIsBtnDisabled({
+                previous: true,
+                next: false,
+            });
 
             return setDate(currentDate);
         }
@@ -181,11 +171,10 @@ function App() {
         const previousWeekDate = new Date(year, month, Number(day) - 7);
         const nextWeekDate = new Date(year, month, Number(day) + 7);
 
-        if (previousWeekDate.getTime() < currentDate.getTime())
-            setIsBtnDisabled({ previous: true, next: false });
-        else if (nextWeekDate.getTime() > dateMax.getTime())
-            setIsBtnDisabled({ previous: false, next: true });
-        else setIsBtnDisabled({ previous: false, next: false });
+        setIsBtnDisabled({
+            previous: previousWeekDate.getTime() < currentDate.getTime(),
+            next: nextWeekDate.getTime() > dateMax.getTime(),
+        });
     };
 
     return (

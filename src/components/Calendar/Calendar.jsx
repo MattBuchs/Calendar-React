@@ -98,6 +98,7 @@ export default function Calendar({
         );
 
         if (newWeek.getTime() < currentDate.getTime()) {
+            setIsBtnDisabled({ previous: true, next: false });
             return setDate(currentDate);
         }
 
@@ -149,6 +150,7 @@ export default function Calendar({
             days[0].numberDay - 7
         );
 
+        console.log(previousWeekDate, currentDate);
         if (previousWeekDate.getTime() < currentDate.getTime()) {
             setIsBtnDisabled({ previous: true, next: false });
         }
