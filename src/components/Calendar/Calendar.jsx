@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function Calendar({
     date,
+    setDate,
     rooms,
     days,
     setDays,
     currentDay,
     currentMonth,
-    currentMonthLong,
     currentYear,
     dayOfWeek,
     widthLi,
@@ -15,6 +15,7 @@ export default function Calendar({
     currentDate,
     isBtnDisabled,
     setIsBtnDisabled,
+    dateRef,
 }) {
     // Trouver l'index de l'objet avec le plus grand tableau "availableTime"
     const maxIndex = rooms.reduce((maxIndex, currentRoom, currentIndex) => {
@@ -41,22 +42,65 @@ export default function Calendar({
                 ...prevState.slice(0, currentDayIndex),
             ];
 
-            const week = shiftedDays.map((day, index) => {
+            return shiftedDays.map((day, index) => {
+                // Créer une nouvelle date pour le jour actuel
+                const newDate = new Date(
+                    currentYear,
+                    currentMonth - 1,
+                    currentDay + index
+                );
+                // Récupérer le nombre de jours dans le mois de la nouvelle date
+                const daysInMonth = new Date(
+                    newDate.getFullYear(),
+                    newDate.getMonth() + 1,
+                    0
+                ).getDate();
+                // Si le nouveau jour dépasse le nombre de jours dans le mois, ajuster le mois
+                let newNumberMonth = newDate.getMonth() + 1;
+                let newYear = newDate.getFullYear();
+                let newNumberDay = newDate.getDate();
+
+                if (newNumberDay > daysInMonth) {
+                    newNumberDay = 1;
+                    newNumberMonth += 1;
+                    if (newNumberMonth > 12) {
+                        newNumberMonth = 1;
+                        newYear += 1;
+                    }
+                }
+
                 return {
                     ...day,
-                    numberDay: currentDay + index,
-                    nameMonth: currentMonthLong,
-                    numberMonth: currentMonth,
-                    year: currentYear,
+                    numberDay: newNumberDay,
+                    nameMonth: new Date(
+                        newYear,
+                        newNumberMonth - 1,
+                        1
+                    ).toLocaleString("fr-FR", { month: "long" }),
+                    numberMonth: newNumberMonth,
+                    year: newYear,
                 };
             });
-
-            return week;
         });
     }, [date]);
 
     const previousWeek = () => {
+        if (dateRef.current.value !== "") {
+            dateRef.current.value = "";
+        }
+
         setIsBtnDisabled({ previous: false, next: false });
+
+        const newWeek = new Date(
+            days[0].year,
+            days[0].numberMonth - 1,
+            days[0].numberDay - 7
+        );
+
+        if (newWeek.getTime() < currentDate.getTime()) {
+            return setDate(currentDate);
+        }
+
         setDays((prevState) => {
             return prevState.map((obj) => {
                 let newNumberDay = obj.numberDay - 7;
@@ -111,6 +155,10 @@ export default function Calendar({
     };
 
     const nextWeek = () => {
+        if (dateRef.current.value !== "") {
+            dateRef.current.value = "";
+        }
+
         setIsBtnDisabled({ previous: false, next: false });
         setDays((prevState) => {
             return prevState.map((obj) => {

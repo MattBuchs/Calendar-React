@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Calendar from "./components/Calendar/Calendar";
 
 function App() {
@@ -20,6 +20,7 @@ function App() {
     const minDay = currentDate.getDate();
     const minMonth = currentDate.getMonth() + 1;
     const minYear = currentDate.getFullYear();
+    const dateRef = useRef();
 
     const [isBtnDisabled, setIsBtnDisabled] = useState({
         previous: true,
@@ -135,16 +136,6 @@ function App() {
 
     const handleDate = (e) => {
         const value = e.target.value;
-        const day = value.slice(8, 10);
-        const month = Number(value.slice(5, 7)) - 1;
-        const year = value.slice(0, 4);
-        const newDate = new Date(year, month, day);
-
-        if (
-            newDate.getTime() < currentDate.getTime() ||
-            newDate.getTime() > dateMax.getTime()
-        )
-            return;
 
         if (value === "") {
             const previousWeekDate = new Date(
@@ -165,8 +156,25 @@ function App() {
                 setIsBtnDisabled({ previous: false, next: true });
             else setIsBtnDisabled({ previous: false, next: false });
 
-            return setDate(new Date());
+            return setDate(currentDate);
         }
+
+        const day = value.slice(8, 10);
+        const month = Number(value.slice(5, 7)) - 1;
+        const year = value.slice(0, 4);
+
+        // Obtenir l'heure actuelle
+        const hours = currentDate.getHours();
+        const minutes = currentDate.getMinutes() + 1;
+        const seconds = currentDate.getSeconds();
+
+        const newDate = new Date(year, month, day, hours, minutes, seconds);
+
+        if (
+            newDate.getTime() < currentDate.getTime() ||
+            newDate.getTime() > dateMax.getTime()
+        )
+            return;
 
         setDate(newDate);
 
@@ -201,6 +209,7 @@ function App() {
 
             <div className="text-center mt-3">
                 <input
+                    ref={dateRef}
                     type="date"
                     name="date-search"
                     min={`${minYear}-${
@@ -215,12 +224,12 @@ function App() {
 
             <Calendar
                 date={date}
+                setDate={setDate}
                 rooms={displayRooms}
                 days={days}
                 setDays={setDays}
                 currentDay={currentDay}
                 currentMonth={currentMonth}
-                currentMonthLong={currentMonthLong}
                 currentYear={currentYear}
                 dayOfWeek={dayOfWeek}
                 widthLi={widthLi}
@@ -228,6 +237,7 @@ function App() {
                 currentDate={currentDate}
                 isBtnDisabled={isBtnDisabled}
                 setIsBtnDisabled={setIsBtnDisabled}
+                dateRef={dateRef}
             />
         </div>
     );
